@@ -1,7 +1,6 @@
 // highly based on https://github.com/KDE/kwallet-pam/blob/master/pam_kwallet.c
 // This is a modification of the kwallet pam to be able to unlock the kde wallet
 // with a password given from CLI at the style of keepass --pw-stdin
-//#include "kwalletexecuter.h"
 
 #include <gcrypt.h>
 #include <sys/stat.h>
