@@ -18,6 +18,7 @@
 const static char *kwalletd = NULL;
 const static char *kdehome = NULL;
 const static char *socketPath = NULL;
+const static char *envVar = "PAM_KWALLET5_LOGIN";
 char *username;
 
 #define KWALLET_PAM_KEYSIZE 56
@@ -342,6 +343,8 @@ static void start_kwallet(const char *kwalletKey) {
     }
   }
 
+  setenv(envVar,fullSocket,1); // does overwrite
+  
   pid_t pid;
   int status;
   switch (pid = fork()) {
