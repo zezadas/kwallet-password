@@ -13,13 +13,16 @@
 #include <pwd.h>
 #include <iostream>
 #include <string>
+#include <QString>
+#include <KConfigGroup>
+#include <ksharedconfig.h>
 #include <QDebug>
 
 const static char *kwalletd = NULL;
 const static char *kdehome = NULL;
 const static char *socketPath = NULL;
 const static char *envVar = "PAM_KWALLET5_LOGIN";
-char *username;
+const static char *username = NULL;
 
 #define KWALLET_PAM_KEYSIZE 56
 #define KWALLET_PAM_SALTSIZE 56
@@ -41,13 +44,33 @@ static void parseArguments(int argc, const char **argv) {
     } else if (strstr(argv[x], "socketPath=") != NULL) {
       socketPath = argv[x] + 11;
     }
+  }
     if (kdehome == NULL) {
       kdehome = ".local/share";
     }
     if (kwalletd == NULL) {
       kwalletd = "kwalletd5";
     }
-  }
+}
+
+//https://github.com/KDE/kwallet/blob/02ab54ea6fe8b61a4e474070061d6e41aebc71a0/src/api/KWallet/kwallet.cpp
+static const char* LocalWallet()
+{
+    // NOTE: This method stays unchanged for KSecretsService
+    KConfigGroup cfg(KSharedConfig::openConfig(QStringLiteral("kwalletrc"))->group("Wallet"));
+    if (!cfg.readEntry("Use One Wallet", true)) {
+        QString tmp = cfg.readEntry("Local Wallet", "localwallet");
+        if (tmp.isEmpty()) {
+            return "localwallet";
+        }
+        return tmp.toStdString().c_str();
+    }
+
+    QString tmp = cfg.readEntry("Default Wallet", "kdewallet");
+    if (tmp.isEmpty()) {
+        return "kdewallet";
+    }
+    return tmp.toStdString().c_str();
 }
 
 static int better_write(int fd, const char *buffer, int len) {
@@ -167,8 +190,12 @@ int kwallet_hash(const char *passphrase, char *key) {
 
   struct passwd *pw = getpwuid(getuid());
   const char *homefolder = pw->pw_dir;
+
   
-  const char *fixpath = "kwalletd/kdewallet.salt";
+  const char* walletname = LocalWallet();
+  char *fixpath = (char *) malloc(strlen(walletname)+14+1); //14+1=kwalletd/%s.salt + \0
+  sprintf(fixpath,  "kwalletd/%s.salt", walletname);
+  
   size_t pathSize = strlen(homefolder) + strlen(kdehome) + strlen(fixpath) +
                     3; // 3 == /, / and \0
   char *path = (char *)malloc(pathSize);

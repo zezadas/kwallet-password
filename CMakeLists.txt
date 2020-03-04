@@ -10,7 +10,7 @@ target_sources(kwallet-password PRIVATE)
 
 find_package(Qt5 CONFIG REQUIRED Core DBus)
 find_package(LibGcrypt 1.5.0 REQUIRED)
-
+find_package(KF5Config)
 
 include_directories (
     ${LIBGCRYPT_INCLUDE_DIR}
@@ -20,4 +20,6 @@ target_link_libraries(kwallet-password
     PRIVATE
     ${LIBGCRYPT_LIBRARIES}
     Qt5::DBus
+    KF5::ConfigCore
+    
 )
