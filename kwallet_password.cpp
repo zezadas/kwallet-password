@@ -435,7 +435,6 @@ int main(int argc, const char **argv) {
   std::string strpass;
   std::getline(std::cin, strpass);
   password = strpass.c_str();
-  qWarning() << strpass.c_str();
 
   if (!username) {
     qWarning("Couldn't get username (it is empty)");
